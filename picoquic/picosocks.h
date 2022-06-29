@@ -40,9 +40,11 @@
 #ifndef SOCKET_TYPE
 #define SOCKET_TYPE SOCKET
 #endif
+
 #ifndef SOCKET_CLOSE
 #define SOCKET_CLOSE(x) closesocket(x)
 #endif
+
 #ifndef WSA_START_DATA
 #define WSA_START_DATA WSADATA
 #endif
@@ -75,6 +77,12 @@
 #ifndef __USE_XOPEN2K
 #define __USE_XOPEN2K
 #endif
+#ifndef __USE_XOPEN2K8
+#define __USE_XOPEN2K8
+#endif
+#ifndef __USE_POSIX199309
+#define __USE_POSIX199309
+#endif
 #ifndef __USE_POSIX
 #define __USE_POSIX
 #endif
@@ -84,6 +92,9 @@
 #ifndef __APPLE_USE_RFC_3542
 #define __APPLE_USE_RFC_3542 /* IPV6_PKTINFO */
 #endif
+#ifndef __USE_MISC
+#define __USE_MISC
+#endif
 
 #include <arpa/inet.h>
 #include <errno.h>
@@ -91,6 +102,7 @@
 #include <netinet/in.h>
 #include <netinet/udp.h>
 #include <sys/select.h>
+#include <netinet/ip.h> /* superset of previous */
 
 #ifndef SOCKET_TYPE
 #define SOCKET_TYPE int

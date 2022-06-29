@@ -204,6 +204,7 @@ add_library(picoquic-core ${PICOQUIC_CORE_HEADERS}
 target_link_libraries(picoquic-core
     ${PTLS_LIBRARIES}
     ${OPENSSL_LIBRARIES}
+    rt
 )
 
 add_library(picoquic-log

@@ -38,6 +38,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "picoquic_utils.h"
 
 /* clang-format on */
