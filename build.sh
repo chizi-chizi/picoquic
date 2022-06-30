@@ -1,25 +1,13 @@
 #!/bin/bash
 
-
 CORE_NUM=$(grep -c ^processor /proc/cpuinfo)
-
 CURDIR=`pwd`
-
-
-PICO_QUIC_DIR=$CURDIR/
+PICO_QUIC_DIR=$CURDIR
 PICO_QUIC_BUILD_DIR=$PICO_QUIC_DIR/build
 PICO_QUIC_INSTALL=$PICO_QUIC_DIR/INSTALL_DIR
-
 PICO_TLS_DIR=$PICO_QUIC_DIR/picotls
-PICO_TLS_BUILD_DIR=$PICO_TLS_DIR/build
-PICO_TLS_INSTALL_DIR=$PICO_TLS_DIR/INSTALL_DIR
 
-PTLS_OPENSSL_LIBRARY=$PICO_TLS_BUILD_DIR/libpicotls-core.a
-PTLS_OPENSSL_LIBRARY="$PTLS_OPENSSL_LIBRARY $PICO_TLS_BUILD_DIR/libpicotls-minicrypto.a"
-PTLS_OPENSSL_LIBRARY="$PTLS_OPENSSL_LIBRARY $PICO_TLS_BUILD_DIR/libpicotls-fusion.a"
-PTLS_OPENSSL_LIBRARY="$PTLS_OPENSSL_LIBRARY $PICO_TLS_BUILD_DIR/libpicotls-openssl.a"
-
-fix_ols_cmake_error(){
+fix_ols_cmake_warnning(){
     #reference to https://unix.stackexchange.com/questions/512681/how-do-i-set-a-cmake-policy#:~:text=Use%20the%20cmake_policy%20command%20to,Wno%2Ddev%20to%20suppress%20it.
     #在第一行前添加字符串cmake_policy(SET CMP0046 OLD),fix error about:
     #CMake Warning (dev) at cmake/dtrace-utils.cmake:37 (ADD_DEPENDENCIES):
@@ -32,7 +20,6 @@ fix_ols_cmake_error(){
         echo "sed -i '1icmake_policy(SET CMP0046 OLD)' $PICO_TLS_DIR/cmake/dtrace-utils.cmake"
         sed -i '1icmake_policy(SET CMP0046 OLD)' $PICO_TLS_DIR/cmake/dtrace-utils.cmake
     fi 
-
 }
 
 install_ols_dependency(){
@@ -60,8 +47,8 @@ install_ols_dependency(){
     fi
 }
 
-fix_cmake_error(){
-    fix_ols_cmake_error
+fix_cmake_prompt(){
+    fix_ols_cmake_warnning
 }
 
 install_dependency(){
@@ -81,36 +68,25 @@ if [ $# -ne 1 ]; then
        exit -1
 fi
 
-
 #picoquic depends picotls so first build picotls
-
 make_tls(){
     pushd  $PICO_QUIC_DIR
-    if [ ! -d $PICO_TLS_DIR ] 
-    then
-        git clone git@github.com:chizi-chizi/picotls.git
-    fi
-    pushd $PICO_TLS_DIR
-        #reference to https://github.com/h2o/picotls
-        git submodule init
-        git submodule update
-    
-        if [ ! -d $PICO_TLS_BUILD_DIR ]
+        if [ ! -d $PICO_TLS_DIR ] 
         then
-            mkdir $PICO_TLS_BUILD_DIR
-        else
-            rm -rf $PICO_TLS_BUILD_DIR
-            mkdir $PICO_TLS_BUILD_DIR
+            git clone git@github.com:chizi-chizi/picotls.git
         fi
-    
-        pushd $PICO_TLS_BUILD_DIR
-            cmake .. -DCMAKE_INSTALL_PREFIX=../INSTALL_DIR \
+
+        pushd $PICO_TLS_DIR
+            #reference to https://github.com/h2o/picotls
+            git submodule init
+            git submodule update
+
+            cmake . -DCMAKE_INSTALL_PREFIX=../INSTALL_DIR \
                      -DCMAKE_BUILD_TYPE=Debug
             make  -j $CORE_NUM
             make check
-            #make install # current, not support install 
+        
         popd
-    popd
     popd 
 }
 
@@ -126,22 +102,17 @@ make_quic(){
     
         pushd $PICO_QUIC_BUILD_DIR
             cmake .. -DCMAKE_INSTALL_PREFIX=../INSTALL_DIR \
-                     -DCMAKE_BUILD_TYPE=Debug \
-                     -DPTLS_CORE_LIBRARY=$PICO_TLS_BUILD_DIR \
-                     -DPTLS_OPENSSL_LIBRARY=$PICO_TLS_BUILD_DIR/libpicotls-openssl.a \
-                     -DPTLS_CORE_LIBRARY=$PICO_TLS_BUILD_DIR/libpicotls-core.a \
-                     -DPTLS_FUSION_LIBRARY=$PICO_TLS_BUILD_DIR/libpicotls-fusion.a
-                     #-DPTLS_OPENSSL_LIBRARY=$PTLS_OPENSSL_LIBRARY
+                    -DCMAKE_BUILD_TYPE=Debug
                 
                      #-DPTLS_DIR=$PICO_TLS_BUILD_DIR
             make  -j $CORE_NUM
             make install 
-            popd
+        popd
     popd
 }
 
 make_pre(){
-    fix_cmake_error
+    fix_cmake_prompt
     install_dependency
 }
 
@@ -150,9 +121,12 @@ make_all(){
     make_tls
     make_quic
 }
+
 make_test(){
     echo $PTLS_OPENSSL_LIBRARY
+    echo $PICO_TLS_DIR
 }
+
 case $1 in
 all)
     make_all
@@ -173,5 +147,3 @@ test)
     show_help 
     ;;
 esac
-
-
