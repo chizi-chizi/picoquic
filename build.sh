@@ -1,6 +1,5 @@
 #!/bin/bash
 
-ARGS=$1
 
 CORE_NUM=$(grep -c ^processor /proc/cpuinfo)
 
@@ -70,7 +69,7 @@ install_dependency(){
 }
 
 show_help(){
-  echo "$0 [ tls | quic | all | pre] ,default is all "
+  echo "$0 [ tls | quic | all | pre]"
   echo "tls             build tls"
   echo "quic            build quic"
   echo "all             build tls and quic"
@@ -117,10 +116,6 @@ make_tls(){
 
 make_quic(){
     pushd $PICO_QUIC_DIR
-        #reference to https://github.com/h2o/picotls
-        git submodule init
-        git submodule update
-    
         if [ ! -d $PICO_QUIC_BUILD_DIR ]
         then
             mkdir $PICO_QUIC_BUILD_DIR
@@ -158,7 +153,7 @@ make_all(){
 make_test(){
     echo $PTLS_OPENSSL_LIBRARY
 }
-case $ARGS in
+case $1 in
 all)
     make_all
     ;;
@@ -175,7 +170,6 @@ test)
     make_test
     ;;
 *)
-
     show_help 
     ;;
 esac
